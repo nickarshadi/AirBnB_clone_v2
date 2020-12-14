@@ -63,10 +63,9 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
             return
         new_dict = self._key_value_parser(args[1:])
-        new_instance = HBNBCommand.classes[args[0]](**new_dict)
-        print(new_instance.id)
-        new_instance.save()
-        storage.save()
+        instance = HBNBCommand.classes[args[0]](**new_dict)
+        print(instance.id)
+        instance.save()
 
     def preloop(self):
         """Print if isatty is false."""
