@@ -31,6 +31,43 @@ class HBNBCommand(cmd.Cmd):
              'latitude': float, 'longitude': float
             }
 
+    def _key_value_parser(self, args):
+        """Create a dictionary from a list of strings."""
+        new_dict = {}
+        for arg in args:
+            if "=" in arg:
+                keyandvalue = arg.split('=', 1)
+                key = keyandvalue[0]
+                value = keyandvalue[1]
+                if value[0] == value[-1] == '"':
+                    value = shlex.split(value)[0].replace('_', ' ')
+                else:
+                    try:
+                        value = int(value)
+                    except:
+                        try:
+                            value = float(value)
+                        except Exception as e:
+                            print(e)
+                            continue
+                new_dict[key] = value
+        return new_dict
+
+    def do_create(self, arg):
+        """Create an object of any class."""
+        args = arg.split()
+        if not args[0]:
+            print("** class name missing **")
+            return
+        elif args[0] not in HBNBCommand.classes:
+            print("** class doesn't exist **")
+            return
+        new_dict = self._key_value_parser(args[1:])
+        new_instance = HBNBCommand.classes[args[0]](**new_dict)
+        print(new_instance.id)
+        new_instance.save()
+        storage.save()
+
     def preloop(self):
         """Print if isatty is false."""
         if not sys.__stdin__.isatty():
@@ -114,43 +151,6 @@ class HBNBCommand(cmd.Cmd):
         """Override the emptyline method of CMD."""
         pass
 
-    def _key_value_parser(self, args):
-        """Create a dictionary from a list of strings."""
-        new_dict = {}
-        for arg in args:
-            if "=" in arg:
-                keyandvalue = arg.split('=', 1)
-                key = keyandvalue[0]
-                value = keyandvalue[1]
-                if value[0] == value[-1] == '"':
-                    value = shlex.split(value)[0].replace('_', ' ')
-                else:
-                    try:
-                        value = int(value)
-                    except:
-                        try:
-                            value = float(value)
-                        except Exception as e:
-                            print(e)
-                            continue
-                new_dict[key] = value
-        return new_dict
-
-    def do_create(self, arg):
-        """Create an object of any class."""
-        args = arg.split()
-        if not args[0]:
-            print("** class name missing **")
-            return
-        elif args[0] not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
-        new_dict = self._key_value_parser(args[1:])
-        storage.save()
-        new_instance = HBNBCommand.classes[args[0]](**new_dict)
-        print(new_instance.id)
-        storage.save()
-
     def help_create(self):
         """Help information for the create method."""
         print("Creates a class of any type")
@@ -222,23 +222,22 @@ class HBNBCommand(cmd.Cmd):
         print("Destroys an individual instance of a class")
         print("[Usage]: destroy <className> <objectId>\n")
 
-    def do_all(self, args):
+    def do_all(self, arg):
         """Show all objects, or all objects of a class."""
-        print_list = []
-
-        if args:
-            args = args.split(' ')[0]  # remove possible trailing args
-            if args not in HBNBCommand.classes:
-                print("** class doesn't exist **")
-                return
-            for k, v in storage._FileStorage__objects.items():
-                if k.split('.')[0] == args:
-                    print_list.append(str(v))
+        args = shlex.split(arg)
+        obj_list = []
+        if len(args) == 0:
+            obj_dict = storage.all()
+        elif args[0] in HBNBCommand.classes:
+            obj_dict = storage.all(HBNBCommand.classes[args[0]])
         else:
-            for k, v in storage._FileStorage__objects.items():
-                print_list.append(str(v))
-
-        print(print_list)
+            print("** class doesn't exist **")
+            return False
+        for key in obj_dict:
+            obj_list.append(str(obj_dict[key]))
+        print("[", end="")
+        print(", ".join(obj_list), end="")
+        print("]")
 
     def help_all(self):
         """Help information for the all command."""
