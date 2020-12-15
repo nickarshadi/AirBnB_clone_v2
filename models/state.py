@@ -20,3 +20,7 @@ class State(BaseModel, Base):
             """Return list of city instances related to this state."""
             city_list = []
             all_cities = models.storage.all(City)
+            for city in all_cities.values():
+                if city.state_id == self.id:
+                    city_list.append(city)
+            return city_list
