@@ -11,6 +11,7 @@ from models.review import Review
 from models.state import State
 from models.user import User
 from models.amenity import Amenity
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 classes = {"Amenity": Amenity, "City": City,
            "Place": Place, "Review": Review, "State": State, "User": User}
@@ -47,3 +48,23 @@ class DBStorage:
                         key = obj.__class__.__name__ + '.' + obj.id
                         new_dict[key] = obj
             return new_dict
+
+        def new(self, obj):
+            """Add this abject to the current database session."""
+            self.__session.add(obj)
+
+        def save(self):
+            """Commit all changes to the current database session."""
+            self.__session.commit()
+
+        def delete(self, obj=None):
+            """Delete the obj from the current database session."""
+            if obj is not None:
+                self.__session.delete(obj)
+
+        def reload(self):
+            """Create all tables."""
+            Base.metadata.create_all(self.__engine)
+            sessionfactory = sessionmaker(bind=self.__engine, expire_on_commit=False)
+            Session = scoped_session(sessionfactory)
+            self.__session = Session
