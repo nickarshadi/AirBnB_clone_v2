@@ -31,40 +31,24 @@ class HBNBCommand(cmd.Cmd):
              'latitude': float, 'longitude': float
             }
 
-    def _key_value_parser(self, args):
-        """Create a dictionary from a list of strings."""
-        new_dict = {}
-        for arg in args:
-            if "=" in arg:
-                keyandvalue = arg.split('=', 1)
-                key = keyandvalue[0]
-                value = keyandvalue[1]
-                if value[0] == value[-1] == '"':
-                    value = shlex.split(value)[0].replace('_', ' ')
-                else:
-                    try:
-                        value = int(value)
-                    except:
-                        try:
-                            value = float(value)
-                        except Exception as e:
-                            print(e)
-                            continue
-                new_dict[key] = value
-        return new_dict
-
     def do_create(self, arg):
         """Create an object of any class."""
         args = arg.split(' ')
         if len(args) == 0:
             print("** class name missing **")
             return False
-        if args[0] in HBNBCommand.classes:
-            new_dict = self._key_value_parser(args[1:])
-            instance = HBNBCommand.classes[args[0]](**new_dict)
-        else:
+
+        if args[0] not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return False
+
+        instance = eval(args[0])()
+
+        for i in range(1, len(args)):
+            key, value = args[i].split("=")
+            value = value.replace("_", " ")
+            setattr(instance, key, eval(value))
+
         print(instance.id)
         instance.save()
 
