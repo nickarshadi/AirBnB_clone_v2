@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 """ Place Module for HBNB project """
-from os import getenv
 from models.base_model import BaseModel, Base
+from models.review import Review
 from sqlalchemy import Table, Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
+from os import getenv
 
 
 class Place(BaseModel, Base):
@@ -19,4 +20,47 @@ class Place(BaseModel, Base):
     price_by_night = Column(Integer, nullable=False, default=0)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
+    amenity_ids = []
+
     reviews = relationship("Review", backref="place", cascade="all, delete")
+    amenities = relationship("Amenity", secondary='place_amenity',
+                             viewonly=False)
+
+    if getenv('HBNB_TYPE_STORAGE') != 'db':
+        @property
+        def reviews(self):
+            """ reviews getter for FileStorage """
+
+            my_reviews = {}
+            all_review = self.reviews
+            for rev in all_review:
+                if self.id == rev.id:
+                    my_reviews.append(rev)
+            return my_reviews
+
+        @property
+        def amenities(self):
+            """getter amenity that returns the list of Amenity"""
+
+            my_amenities = {}
+            all_amenities = self.amenities
+            for ame in all_amenities:
+                if self.id == ame.id:
+                    my_amenities.append(ame)
+            return my_amenities
+
+        @amenities.setter
+        def amenities(sef, obj=None):
+            """Setter amenities"""
+
+            if obj.__class__name__ == 'Amenity':
+                self.amenities_ids.append(obj.id)
+
+
+place_amenity = Table('place_amenity', Base.metadata,
+                      Column('place_id', String(60),
+                             ForeignKey("places.id"),
+                             primary_key=True, nullable=False),
+                      Column('amenity_id', String(60), ForeignKey
+                             ('amenities.id'),
+                             primary_key=True, nullable=False))
