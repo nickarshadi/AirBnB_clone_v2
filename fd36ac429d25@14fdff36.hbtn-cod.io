@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prepare your web server.
-apt-get -y update
+apt-get -y update && apt-get -y upgrade
 apt-get -y install nginx
 mkdir -p /data/web_static/releases/test
 mkdir -p /data/web_static/shared
