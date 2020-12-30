@@ -15,5 +15,5 @@ def do_pack():
         local('tar -czvf {} web_static'.format(filename))
         return filename
     except Exception as e:
-        print(e)
+        """print(e)"""
         return None
