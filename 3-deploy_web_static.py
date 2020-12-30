@@ -1,58 +1,54 @@
 #!/usr/bin/python3
-"""Deploy archive."""
-import os
-from fabric import api
-import tarfile
+"""Generate a .tgz archive from the contents of the web_static folder."""
+
 from datetime import datetime
-
-api.env.hosts = ['35.227.13.38', '35.231.175.126']
-api.env.user = "ubuntu"
-
-
-def deploy():
-    """Deploy archive to webservs."""
-    tar = do_pack()
-    if not tar:
-        return False
-    return do_deploy(tar)
+import os
+from fabric.api import env, run, put, local
+env.hosts = ['35.227.13.38', '35.231.175.126']
+env.user = 'ubuntu'
 
 
 def do_pack():
-    """ Creates tar archive"""
-    savedir = "versions/"
-    filename = "web_static_" + datetime.now().strftime("%Y%m%d%H%M%S") + ".tgz"
-    if not os.path.exists(savedir):
-        os.mkdir(savedir)
-    with tarfile.open(savedir + filename, "w:gz") as tar:
-        tar.add("web_static", arcname=os.path.basename("web_static"))
-    if os.path.exists(savedir + filename):
-        return savedir + filename
-    else:
+    """tar -czvf web_static."""
+    date = datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = 'versions/web_static_{}.tgz'.format(date)
+    try:
+        if not os.path.isdir('versions'):
+            os.mkdir('versions')
+        local('tar -czvf {} web_static'.format(filename))
+        return filename
+    except Exception as e:
+        print(e)
         return None
 
 
 def do_deploy(archive_path):
     """Distribute an archive to your web servers."""
-
     if not os.path.exists(archive_path):
         return False
+    try:
+        filename = archive_path.split('/')[-1]
+        name = filename.split('.')[0]
+        """Complete Path."""
+        cpth = '/data/web_static/releases/{}'.format(name)
+        pth = '/data/web_static/releases/'
+        put(archive_path, '/tmp/')
+        run('mkdir -p {}'.format(pth))
+        run("tar -xzf /tmp/{} -C {}/".format(filename, pth))
+        run("mv {0}/web_static {0}/{1}".format(pth, name))
+        run("rm /tmp/{}".format(filename))
+        run("rm /data/web_static/current")
+        run("ln -s {}/ /data/web_static/current".format(cpth))
+        return True
+    except Exception as e:
+        print(e)
+        return False
 
-    results = []
 
-    upload = api.put(archive_path, '/tmp')
-    results.append(upload.succeeded)
+def deploy():
+    """Create and distribute an archive to your web server."""
 
-    basename = os.path.basename(archive_path)
-    if basename[-4:] == '.tgz':
-        name = basename[:-4]
-    newdir = '/data/web_static/releases/' + name
-    api.run('mkdir -p {}'.format(newdir))
-    api.run("tar -xzf /tmp/{} -C {}".format(basename, newdir))
-
-    api.run("rm /tmp/{}".format(basename))
-    api.run("mv {}/web_static/* {}".format(newdir, newdir))
-    api.run("rm -rf {}/web_static".format(newdir))
-    api.run("rm -rf /data/web_static/current")
-    api.run("ln -s {} /data/web_static/current".format(newdir))
-
-    return True
+    filepath = do_pack()
+    if filepath is None:
+        return False
+    return do_deploy(filepath)
