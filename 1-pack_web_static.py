@@ -10,6 +10,7 @@ from datetime import datetime
 
 
 def do_pack():
+    """tar -czvf web_static."""
     date = datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'versions/web_static_{}.tgz'.format(date)
     try:
