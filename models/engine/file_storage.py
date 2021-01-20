@@ -73,5 +73,5 @@ class FileStorage:
             pass
 
     def close(self):
-        """Thread specific storage"""
+        """Thread specific storage."""
         self.reload()
