@@ -25,19 +25,6 @@ print("All States: {}".format(len(all_states.keys())))
 for state_key in all_states.keys():
     print(all_states[state_key])
 
-# Create another State
-another_state = State()
-another_state.name = "Nevada"
-fs.new(another_state)
-fs.save()
-print("Another State: {}".format(another_state))
-
-# All States
-all_states = fs.all(State)
-print("All States: {}".format(len(all_states.keys())))
-for state_key in all_states.keys():
-    print(all_states[state_key])        
-
 # Delete the new State
 fs.delete(new_state)
 
@@ -46,4 +33,3 @@ all_states = fs.all(State)
 print("All States: {}".format(len(all_states.keys())))
 for state_key in all_states.keys():
     print(all_states[state_key])
-

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" State Module for HBNB project """
+"""This is the state class"""
 from models.base_model import BaseModel, Base
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import Column, String
@@ -25,6 +25,6 @@ class State(BaseModel, Base):
         def cities(self):
             """returns list of City instances with state_id"""
             from models import storage
-            from models.city import City
+            from models import City
             return [v for k, v in storage.all(City).items()
                     if v.state_id == self.id]
