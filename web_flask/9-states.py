@@ -1,28 +1,36 @@
 #!/usr/bin/python3
-"""
-starts a Flask web application
-"""
+"""Minimal flask app"""
 
 from flask import Flask, render_template
-from models import *
 from models import storage
+from models import State
 app = Flask(__name__)
 
 
-@app.route('/states', strict_slashes=False)
-@app.route('/states/<state_id>', strict_slashes=False)
-def states(state_id=None):
-    """display the states and cities listed in alphabetical order"""
-    states = storage.all("State")
-    if state_id is not None:
-        state_id = 'State.' + state_id
-    return render_template('9-states.html', states=states, state_id=state_id)
-
-
 @app.teardown_appcontext
-def teardown_db(exception):
-    """closes the storage on teardown"""
+def closedb(foo):
+    """Closes db session"""
     storage.close()
 
+
+@app.route('/states', strict_slashes=False, defaults={'id': None})
+@app.route('/states/<id>', strict_slashes=False)
+def states(id):
+    """Route /states"""
+    state = states = None
+    if not id:
+        states = list(storage.all(State).values())
+    else:
+        states = storage.all(State)
+        key = "State." + id
+        if key in states:
+            state = states[key]
+        else:
+            state = None
+        states = []
+    return render_template('9-states.html', **locals())
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='5000')
+    storage.reload()
+    app.run("0.0.0.0", 5000)

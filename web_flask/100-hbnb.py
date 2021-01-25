@@ -3,7 +3,7 @@
 
 from flask import Flask, render_template
 from models import storage
-from models import State
+from models import State, Amenity, Place
 app = Flask(__name__)
 
 
@@ -13,12 +13,13 @@ def closedb(foo):
     storage.close()
 
 
-@app.route('/states_list', strict_slashes=False)
-def states_list():
-    """Route /states_list"""
-    states = list(storage.all(State).values())
-    states.sort(key=lambda state: state.name)
-    return render_template('7-states_list.html', states=states)
+@app.route('/hbnb', strict_slashes=False)
+def hbnb_filters():
+    """Route /hbnb"""
+    states = storage.all(State)
+    amenities = storage.all(Amenity)
+    places = storage.all(Place)
+    return render_template('100-hbnb.html', **locals())
 
 
 if __name__ == '__main__':
